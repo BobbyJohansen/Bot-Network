@@ -5,7 +5,7 @@ import time
 
 from log.logger import Logger
 
-
+# TODO: This is going to stem fromm a process need it to work with a process pool
 class Bot(Thread):
     def __init__(self, name, type, token):
         super(Bot, self).__init__(name=name)

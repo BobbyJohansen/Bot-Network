@@ -1,3 +1,6 @@
+"""
+This manages a set amount of processes (bots) running on this system.
+"""
 from concurrent.futures import ProcessPoolExecutor
 from threading import Thread
 
@@ -33,7 +36,7 @@ class BotManager(Thread):
             with self._qlock:
                 if not self._command_queue.empty():
                     bot_info = self._command_queue.get()
-                    self._logger.info("Recieved New Bot To deploy")
+                    self._logger.info("Received New Bot To deploy")
                     self._logger.info(bot_info)
                     self._deploy(bot_info)
 

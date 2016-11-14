@@ -2,6 +2,9 @@
 This is the listener managing multiple bots. It is fairly stupid and only knows how to spin up bots
 (and eventually shut them down). It is stupid so many of them can be spun up for horizontal scaling purposes
 It can also be tuned for vertical scaling
+
+Eventually this could just pick up on the database (RETHINK and listen to a live feed) when it hears a new account
+being persisted it could just kick off create_bot()
 """
 from flask import Flask, request, make_response
 from multiprocessing import Queue
@@ -32,7 +35,6 @@ def create_bot():
 
     try:
         logger.info("create endpoint hit attempting to read bot info")
-        logger.info(request.args)
         # Retrieve the auth code from the request params
         bot_info = request.args
         logger.info(bot_info)
@@ -50,11 +52,11 @@ def create_bot():
 
     return response
 
-@listener.route("resources", methods=["GET"])
+@listener.route("/resources", methods=["GET"])
 def get_resources():
-    # Get the total number of running bots, the total space for bots
+    # TODO: Get the total number of running bots, the total space for bots
     max_workers = env.get("pool_size", 5)
-    return {}
+    return {'max_workers': max_workers, 'running':'idk'}
 
 def init():
     # load the Bot Manager on its own thread

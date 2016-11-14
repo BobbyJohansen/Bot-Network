@@ -14,6 +14,7 @@ from log.logger import Logger
 client_id = os.environ["SLACK_CLIENT_ID"]
 client_secret = os.environ["SLACK_CLIENT_SECRET"]
 
+
 # Bot Manager communications
 managerQ = Queue()
 qlock = Lock()
@@ -55,6 +56,15 @@ def post_install():
     bot['user_access_token'] = auth_response['access_token']
     bot['bot_access_token'] = auth_response['bot']['bot_access_token']
     bot['team_name'] = auth_response['team_name']
+    bot['team_id'] = auth_response['team_id']
+    try:
+        bot['user_id'] = auth_response['user_id']
+    except Exception as e:
+        logger.error("Could not find user_id")
+        logger.error(e)
+
+    bot['channel_type'] = "slack"
+
     logger.info(bot['team_name'] + "  /  " + bot['user_access_token'] + "  /  " + bot['bot_access_token'])
     # Send to Bot Manager Executor
     with qlock:
