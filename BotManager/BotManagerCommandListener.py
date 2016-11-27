@@ -30,13 +30,13 @@ def create_bot():
     # Assume failure so that we can retry if something goes bad
     response = make_response('failed to create bot', 500)
     # Validate for security
-    # TODO: create a secure token that should be sent if that toekn does not exist then it didnt come from me
+    # TODO: create a secure token that should be sent if that token does not exist then it didnt come from me
     # TODO: username = request.cookies.get('username')
 
     try:
         logger.info("create endpoint hit attempting to read bot info")
         # Retrieve the auth code from the request params
-        bot_info = request.args
+        bot_info = request.get_json(force=True)
         logger.info(bot_info)
 
         # send via queue to BotManagerExecutor
@@ -54,15 +54,23 @@ def create_bot():
 
 @listener.route("/resources", methods=["GET"])
 def get_resources():
-    # TODO: Get the total number of running bots, the total space for bots
+    # TODO: Get the total number of running slackbots, the total space for slackbots
     max_workers = env.get("pool_size", 5)
-    return {'max_workers': max_workers, 'running':'idk'}
+    return {'max_workers': max_workers, 'running': 'idk at this layer'}
+
+@listener.route("/manager/stop", methods=["POST"])
+def manager_stop():
+    pass # TODO: stop the manager and all its slackbots
+
+@listener.route("/manager/start", methods=["POST"])
+def manager_start():
+    pass # TODO: start the manager and wait for slackbots to come in
 
 def init():
     # load the Bot Manager on its own thread
     logger.info("Initialization of command listener called")
     max_workers = env.get("pool_size", 5)
-    manager = BotManager("", managerQ, qlock, max_workers)
+    manager = BotManager("", managerQ, qlock)
     manager.init()
     manager.setDaemon(True)
     manager.start()

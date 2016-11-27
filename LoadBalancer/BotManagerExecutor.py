@@ -2,6 +2,7 @@
 This balances bot placement to bot managers on a round robin
 Talks to bot managers over some network protocol
 """
+import json
 import os
 from threading import Thread
 
@@ -38,7 +39,7 @@ class BotManagerExecutor(Thread):
         self._logger.info("Yes Executor?!")
         self._logger.info("Awaiting your command!")
 
-        # Load the existing bots already in the database and run them
+        # Load the existing slackbots already in the database and run them
         self._load_run_existing_bots()
 
         while True:
@@ -77,15 +78,18 @@ class BotManagerExecutor(Thread):
             if len(documents) == 0:
                 # save and return
                 # TODO: make this a class with a generate dictionary?
-                new_bot = {'bot_info': {
-                    'team_name': bot['team_name'],
-                    'team_id': bot['team_id'],
-                    'bot_type': bot['state'],
-                    'channel_type': bot['channel_type'],
-                    'user_access_token': bot['user_access_token'],
-                    'bot_access_token': bot['bot_access_token'],
-                    'trashed_tokens': [],
-                    'installer_id': bot['user_id']},
+                new_bot = {
+                    'bot_info': {
+                        'team_name': bot['team_name'],
+                        'team_id': bot['team_id'],
+                        'bot_type': bot['state'],
+                        'channel_type': bot['channel_type'],
+                        'user_access_token': bot['user_access_token'],
+                        'bot_access_token': bot['bot_access_token'],
+                        'trashed_tokens': [],
+                        'installer_id': bot['user_id'],
+                        'team_size': 1
+                    },
                     'created': r.now(),
                     'updated': r.now(),
                     'expired': False,
@@ -94,7 +98,8 @@ class BotManagerExecutor(Thread):
                     'poc_phone': "",
                     'paid': False,
                     'paid_for': "forever",
-                    'trial': False}
+                    'trial': False,
+                }
                 try:
                     r.table('accounts').insert(new_bot).run(self._db_conn)
                     return new_bot
@@ -136,7 +141,7 @@ class BotManagerExecutor(Thread):
 
             # Call rest endpoint for bot manager from env managers
             self._logger.info("Attempting to dispatch to: " + manager)
-            response = requests.post(manager + self._creation_endpoint, params=bot_info)
+            response = requests.post(manager + self._creation_endpoint, data=json.dumps(bot_info['bot_info']))
             self._logger.info("Response from dispatch to: " + manager + " is " + str(response))
         except Exception as e:
             self._logger.error("Failed to dispatch bot to manager: " + str(manager))
@@ -144,11 +149,12 @@ class BotManagerExecutor(Thread):
 
             # TODO: also need a personal token for security and check on the other side
 
-    # Load up the already authed bots and run them placing them across all Bot Managers
+    # Load up the already authed slackbots and run them placing them across all Bot Managers
+    #TODO: Move this to the Cluster Starter that will balance BMEs and tell them who the BMs are and deploy existing slackbots across BMEs
     def _load_run_existing_bots(self):
         existing_bots = []
         # TODO: grab them from the database and return them
-        self._logger.info("Retrieving already authenticated bots from our bots repo")
+        self._logger.info("Retrieving already authenticated slackbots from our slackbots repo")
         cursor = r.table('accounts').run(self._db_conn)
         for account in cursor:
             self._logger.info("Starting bot for account: " + account['bot_info']['team_name'])
