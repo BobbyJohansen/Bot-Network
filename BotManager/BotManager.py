@@ -8,9 +8,9 @@ import time
 from multiprocessing import Queue
 from multiprocessing import Lock
 
+from circuits_slack_bots.CircuitBroBot import CircuitBroBot
 from slackbots.BroBot import BroBot
 from log.logger import Logger
-from slackbots.SlackListener import SlackListener
 
 
 class BotManager(Thread):
@@ -62,7 +62,7 @@ class BotManager(Thread):
         bot.start()
 
     def _get_bot_from_type(self, type):
-        return BroBot.BroBot
+        return CircuitBroBot.CircuitBroBot
 
     def _check_bots(self):
         # TODO: get status of slackbots maybe through REST again so that Bots know how to define their status or through a Queue

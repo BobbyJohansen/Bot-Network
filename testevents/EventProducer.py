@@ -1,17 +1,12 @@
-from circuits import Component
-
-from testevents.EventConsumer import EventConsumer
-from testevents.produced import produced
+import time
+from circuits import Component, Event, BaseComponent
+from circuits.tools import graph
 
 
 class EventProducer(Component):
-    def __init__(self):
+    def __init__(self, component):
         super(EventProducer, self).__init__()
-        self._consumers = [
-            EventConsumer().start(process=True, link=self)
-        ]
+        self.consumer = component().register(self)
 
-
-    def produce(self):
-        print("EventProducer: produce called")
-        self.fire(produced())
+    def started(self, *args):
+        print(graph(self.root))

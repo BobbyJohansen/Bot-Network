@@ -5,23 +5,17 @@ from circuits import BaseComponent
 
 from log.logger import Logger
 from slackbots.BroBot import BroBotListener
-from slackbots.SlackListener import SlackListener
+from slackbots.SlackBot import SlackBot
 
 
-class BroBot(Thread):
+class BroBot(SlackBot):
     def __init__(self, bot_info, managerQ, qlock, heart_beat_interval):
-        super(BroBot, self).__init__(name="BroBot")
-        self._slack_listener = SlackListener("brobot", bot_info, managerQ,
-                                             qlock, BroBotListener.BroBotListener, heart_beat_interval)
+        super(BroBot, self).__init__("brobot", bot_info, managerQ, qlock, heart_beat_interval)
+        self._bro_bot_loop = Thread() # main thread for running any bot specific tasks
         self._logger = Logger().gimme_logger(self.__class__.__name__)
 
-    def init(self):
-        self._slack_listener.init()
-        # TODO daemon?
-        self._slack_listener.start()
+    def setup_bot(self):
+        pass
 
-    def run(self):
-        while True:
-            # This is where we run any logic outside of event driven framework
-            self._logger.info("Bot loop running")
-            time.sleep(10)
+    def message_event(self, event):
+        self._logger.info("message in bro bot")
