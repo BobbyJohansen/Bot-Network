@@ -1,2 +1,2 @@
-# brobot
-The bro bot thats got your back!
+# Restfull Bot Network and Host Platform
+
