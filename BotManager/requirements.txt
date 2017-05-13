@@ -1,0 +1,4 @@
+circuits
+Flask
+SlackClient
+rethinkdb
