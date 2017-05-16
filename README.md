@@ -7,3 +7,4 @@
 
 ## Run
 - Run SlackAuth.py for LB and BotManagerCommandListener.py for Bot placement and management
+![Image](art/white_logo_color_background_small.png)
