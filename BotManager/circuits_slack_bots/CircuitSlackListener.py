@@ -36,11 +36,11 @@ class CircuitSlackListener(Thread):
         self._logger.info(str(self) + "Starting bot setup...")
         if listeners == None: self._logger.warn("Heads up you wont receive events with no listener")
         # register bot listeners and start component for events
-        self._event_producer._register_listeners(listeners)
+        self._event_producer._register_listeners(listeners, self)
         self._event_producer.start()
 
         # start the heart beat
-        self._bot_heart.start() # TODO set daemon?
+        self._bot_heart.start()  # TODO set daemon?
 
         # start the slack connection
         self._sc = SlackClient(self._token)
@@ -62,24 +62,28 @@ class CircuitSlackListener(Thread):
     def _run_slack_listener(self):
         self._logger.info(str(self) + "Starting bot loop...")
         while True:
-            self._retrieve_and_process_messages()
-            time.sleep(1)
+            try:
+                self._retrieve_and_process_messages()
+                time.sleep(1)
+            except Exception as e:
+                self._logger.error("broke main listener loop")
+                self._logger.error(e)
 
     def _retrieve_and_process_messages(self):
         events = self._sc.rtm_read()
         for event in events:
-            self._logger.info("Event Received: " + event.get("type"))
+            if "type" in event:
+                self._logger.info("Event Received: " + event.get("type"))
             self._dispatch_event(event)
             # TODO dispatch events to overriden methods
 
     def _dispatch_event(self, event):
         event_type = event.get("type")
-        if(event_type in self._event_map):
-            event = self._event_map[event_type]
-            # TODO: add event data to the event
-            self._event_producer.fire(event())
+        if event_type in self._event_map:
+            circuit_event = self._event_map[event_type]
+            self._event_producer.fire(circuit_event(event))
         else:
-            self._logger.info("Event of type " + event_type + " not handled ignoring it.")
+             self._logger.info("Event of type " + event_type + " not handled ignoring it.")
 
             ################ Actions that can be performed ############################################
 
@@ -88,25 +92,27 @@ class CircuitSlackListener(Thread):
             for other formatting use the send via api """
         self._sc.rtm_send_message(channel, message)
 
+    def send_basic_message_api(self, channel, message):
+        self._sc.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text=message
+        )
 
-def send_basic_message_api(self, channel, message):
-    self._sc.api_call(
-        "chat.postMessage",
-        channel=channel,
-        text=message
-    )
+    def get_channel_history_api(self, channel):
+        self._sc.api_call("channels.history", channel=channel, count=100, ts=0)
 
-def update_basic_message_api(self, ts, channel, updated_message):
-    self._sc.api_call(
-        "chat.update",
-        ts=ts,
-        channel=channel,
-        text=updated_message
-    )
+    def update_basic_message_api(self, ts, channel, updated_message):
+        self._sc.api_call(
+            "chat.update",
+            ts=ts,
+            channel=channel,
+            text=updated_message
+        )
 
-def delete_basic_message_api(self, ts, channel):
-    self._sc.api_call(
-        "chat.delete",
-        channel=channel,
-        ts=ts
-    )
+    def delete_basic_message_api(self, ts, channel):
+        self._sc.api_call(
+            "chat.delete",
+            channel=channel,
+            ts=ts
+        )

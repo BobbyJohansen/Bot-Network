@@ -16,8 +16,10 @@ class CircuitBroBot(Thread):
         super(CircuitBroBot, self).__init__(name="brobot")
 
         # This is the slack listener we must initialize it and register our bot to it and start it
+        # Create the Slack Shim and initialize it with our bot info
         self._slack_listener = CircuitSlackListener("brobot", bot_info, managerQ, qlock, heart_beat_interval)
-        self._event_listener = CircuitBroBotEventListener
+        # self._event_listener = CircuitBroBotEventListener()
+        # Register the type of event listener to the shim
         self._slack_listener.init([CircuitBroBotEventListener])
         self._slack_listener.start()
 

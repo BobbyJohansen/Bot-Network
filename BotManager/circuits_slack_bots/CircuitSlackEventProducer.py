@@ -11,9 +11,9 @@ class CircuitSlackEventProducer(Component):
         self._logger = Logger().gimme_logger(self.__class__.__name__)
 
     # This is a private method so that the auto decorators stay away from it
-    def _register_listeners(self, consumers):
+    def _register_listeners(self, consumers, api):
         for consumer in consumers:
-            self._bot_listeners.append(consumer().register(self))
+            self._bot_listeners.append(consumer(api).register(self))
 
     def started(self, *args):
         self._logger.info("Starting Event Producer Framework")
